@@ -1,0 +1,4 @@
+(coq.theory
+ (name StringOfTerm)                 
+ (package coq-string-of-term)
+ (plugins coq-string-of-term.plugin)) 

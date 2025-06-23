@@ -1,0 +1,17 @@
+DECLARE PLUGIN "coq-string-of-term.plugin"
+
+{
+
+open Ltac_plugin
+open Stdarg
+open String_conv
+
+}
+
+TACTIC EXTEND print_term
+| [ "print_string_of_term" constr(t) ] -> { print_string_of_term t }
+END
+
+TACTIC EXTEND pose
+| [ "pose_string_of_term" ident(name) constr(t) ] -> { pose_str name t }
+END

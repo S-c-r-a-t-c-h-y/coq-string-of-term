@@ -1,0 +1,28 @@
+opam-version: "2.0"
+maintainer: "Amaury Mazoyer <amaury.mazoyer@ens-lyon.fr>"
+
+homepage: "https://github.com/S-c-r-a-t-c-h-y/coq-string-of-term"
+dev-repo: "git+https://github.com/S-c-r-a-t-c-h-y/coq-string-of-term.git"
+bug-reports: "https://github.com/S-c-r-a-t-c-h-y/coq-string-of-term/issues"
+license: "MIT"
+
+synopsis: "Convert Coq terms to Coq strings"
+description: """
+A Coq plugin that provides a way to convert Coq terms into their string representation."""
+
+build: ["dune" "build" "-p" name "-j" jobs]
+depends: [
+  "ocaml" {>= "4.07.1"}
+  "dune" {>= "3.6." }
+  "coq" {>= "8.14" }
+]
+
+tags: [
+  "category:Miscellaneous/Coq Extensions"
+  # "keyword:your keyword"
+  "logpath:StringOfTerm"
+]
+
+authors: [
+  "Amaury Mazoyer"
+]
