@@ -5,13 +5,16 @@ DECLARE PLUGIN "coq-string-of-term.plugin"
 open Ltac_plugin
 open Stdarg
 open String_conv
+open Tacarg
 
 }
 
-TACTIC EXTEND print_term
+TACTIC EXTEND print
 | [ "print_string_of_term" constr(t) ] -> { print_string_of_term t }
+| [ "print_string_of_intropattern" simple_intropattern(t) ] -> { print_string_of_intropattern t }
 END
 
 TACTIC EXTEND pose
-| [ "pose_string_of_term" ident(name) constr(t) ] -> { pose_str name t }
+| [ "pose_string_of_term" ident(name) constr(t) ] -> { pose_str_term name t }
+| [ "pose_string_of_intropattern" ident(name) simple_intropattern(p) ] -> { pose_str_intropattern name p }
 END

@@ -5,7 +5,11 @@ let ocaml_string_of_econstr env sigma t =
   let pp = Printer.pr_econstr_env env sigma t in
   Pp.string_of_ppcmds pp
 
-let string_of_econstr env sigma t =
+let ocaml_string_of_intropattern intropattern =
+  let pp = Miscprint.pr_intro_pattern (fun _ -> Pp.str "") intropattern in
+  Pp.string_of_ppcmds pp
+
+let mk_coq_string env sigma (s : string) =
   let empty_string_ref, string_cons_ref =
     (lib_ref "core.string.empty", lib_ref "core.string.string")
   in
@@ -14,7 +18,6 @@ let string_of_econstr env sigma t =
       lib_ref "core.bool.true",
       lib_ref "core.bool.false" )
   in
-  let str = ocaml_string_of_econstr env sigma t in
   let sigma, empty_string = Evd.fresh_global env sigma empty_string_ref in
   let sigma, string_cons = Evd.fresh_global env sigma string_cons_ref in
   let sigma, ascii_cons = Evd.fresh_global env sigma ascii_cons_ref in
@@ -29,19 +32,24 @@ let string_of_econstr env sigma t =
     mkApp (ascii_cons, Array.of_list (List.map mk_bool bits))
   in
 
-  let mk_coq_string (s : string) =
-    let len = String.length s in
-    let rec build i acc =
-      if i < 0 then acc
-      else
-        let char_term = mk_ascii s.[i] in
-        let str_term = mkApp (string_cons, [| char_term; acc |]) in
-        build (i - 1) str_term
-    in
-    build (len - 1) empty_string
+  let len = String.length s in
+  let rec build i acc =
+    if i < 0 then acc
+    else
+      let char_term = mk_ascii s.[i] in
+      let str_term = mkApp (string_cons, [| char_term; acc |]) in
+      build (i - 1) str_term
   in
+  build (len - 1) empty_string
 
-  let str_term = mk_coq_string str in
+let string_of_econstr env sigma t =
+  let str = ocaml_string_of_econstr env sigma t in
+  let str_term = mk_coq_string env sigma str in
+  str_term
+
+let string_of_intropattern env sigma intropattern =
+  let str = ocaml_string_of_intropattern intropattern in
+  let str_term = mk_coq_string env sigma str in
   str_term
 
 let print_string_of_term t =
@@ -52,7 +60,15 @@ let print_string_of_term t =
   Feedback.msg_notice pp;
   Tacticals.tclIDTAC
 
-let pose_str name t =
+let print_string_of_intropattern intropattern =
+  let env = Global.env () in
+  let sigma = Evd.from_env env in
+  let str_term = string_of_intropattern env sigma intropattern in
+  let pp = Printer.pr_econstr_env env sigma str_term in
+  Feedback.msg_notice pp;
+  Tacticals.tclIDTAC
+
+let pose_str_term name t =
   let open Proofview in
   Goal.enter (fun gl ->
       let env = Goal.env gl in
@@ -60,3 +76,14 @@ let pose_str name t =
       let str_term = string_of_econstr env sigma t in
       let name = Names.Name.mk_name name in
       Tactics.pose_tac name str_term)
+
+let pose_str_intropattern name intropattern =
+  let open Proofview in
+  Goal.enter (fun gl ->
+      let env = Goal.env gl in
+      let sigma = Goal.sigma gl in
+      let str_term = string_of_intropattern env sigma intropattern in
+      let name = Names.Name.mk_name name in
+      Tactics.pose_tac name str_term)
+
+type t = C : 'a -> t
