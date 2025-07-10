@@ -9,7 +9,9 @@ let ocaml_string_of_intropattern intropattern =
   let pp = Miscprint.pr_intro_pattern (fun _ -> Pp.str "") intropattern in
   Pp.string_of_ppcmds pp
 
+(** Returns a Coq term of type string representing the OCaml string [s] *)
 let mk_coq_string env sigma (s : string) =
+  (* fetch the constructors for boolean, ascii and string based on their reference *)
   let empty_string_ref, string_cons_ref =
     (lib_ref "core.string.empty", lib_ref "core.string.string")
   in
@@ -32,6 +34,7 @@ let mk_coq_string env sigma (s : string) =
     mkApp (ascii_cons, Array.of_list (List.map mk_bool bits))
   in
 
+  (* Build the Coq string from the OCaml string *)
   let len = String.length s in
   let rec build i acc =
     if i < 0 then acc
@@ -42,16 +45,21 @@ let mk_coq_string env sigma (s : string) =
   in
   build (len - 1) empty_string
 
+(** Returns a Coq term of type string that represents the econstr [t] according
+    to the pretty printer *)
 let string_of_econstr env sigma t =
   let str = ocaml_string_of_econstr env sigma t in
   let str_term = mk_coq_string env sigma str in
   str_term
 
+(** Returns a Coq term of type string that represents the intropattern
+    [intropattern] according to the pretty printer *)
 let string_of_intropattern env sigma intropattern =
   let str = ocaml_string_of_intropattern intropattern in
   let str_term = mk_coq_string env sigma str in
   str_term
 
+(** Tactic that prints the Coq string that represents the term [t] *)
 let print_string_of_term t =
   let env = Global.env () in
   let sigma = Evd.from_env env in
@@ -60,6 +68,8 @@ let print_string_of_term t =
   Feedback.msg_notice pp;
   Tacticals.tclIDTAC
 
+(** Tactic that prints the Coq string that represents the intropattern
+    [intropattern] *)
 let print_string_of_intropattern intropattern =
   let env = Global.env () in
   let sigma = Evd.from_env env in
@@ -68,6 +78,8 @@ let print_string_of_intropattern intropattern =
   Feedback.msg_notice pp;
   Tacticals.tclIDTAC
 
+(** Tactic that poses a new hypothese named [name] in the context and whose
+    definition is the Coq string that represents the term [t] *)
 let pose_str_term name t =
   let open Proofview in
   Goal.enter (fun gl ->
@@ -77,6 +89,9 @@ let pose_str_term name t =
       let name = Names.Name.mk_name name in
       Tactics.pose_tac name str_term)
 
+(** Tactic that poses a new hypothese named [name] in the context and whose
+    definition is the Coq string that represents the intropattern [intropattern]
+*)
 let pose_str_intropattern name intropattern =
   let open Proofview in
   Goal.enter (fun gl ->
@@ -85,5 +100,3 @@ let pose_str_intropattern name intropattern =
       let str_term = string_of_intropattern env sigma intropattern in
       let name = Names.Name.mk_name name in
       Tactics.pose_tac name str_term)
-
-type t = C : 'a -> t
